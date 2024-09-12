@@ -100,7 +100,7 @@ class StarEffectSetting {
       this.starRotationSpeedMax = 1.0,
       this.starWarpLineLength = 2.0,
       this.starWarpTunnelDiameter = 100,
-      this.starFollowMouseSensitivity = 0.5,
+      this.starFollowMouseSensitivity = 0.015,
       this.starFollowMouseXAxis = true,
       this.starFollowMouseYAxis = true,
       this.starFovAnimationDuration = 2,
