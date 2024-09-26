@@ -68,8 +68,8 @@ class _CodeRainEffectState extends State<CodeRainEffect>
   late final List<Code> _codeHolder;
   late final CodeRainEffectSetting _setting;
   late double _transformTime;
-  late bool _init;
   late ValueNotifier<bool> _update;
+  late Size canvasSize;
 
   @override
   void initState() {
@@ -77,62 +77,13 @@ class _CodeRainEffectState extends State<CodeRainEffect>
     _animationController =
         AnimationController(vsync: this, duration: const Duration(seconds: 1));
     _setting = widget.setting ?? CodeRainEffectSetting();
-    _init = false;
     _update = ValueNotifier(false);
     _transformTime = 0;
     _setting.transformDuration = _setting.transformDuration * _setting.hz;
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      _setting.canvasHeight = _setting.canvasHeight ?? constraints.maxHeight;
-      _setting.canvasWidth = _setting.canvasWidth ?? constraints.maxWidth;
-
-      if (!_init) {
-        init();
-        _init = true;
-      }
-      Size size = Size(_setting.canvasWidth!, _setting.canvasHeight!);
-      return ValueListenableBuilder(
-          valueListenable: _update,
-          builder: (context, value, child) {
-            return CustomPaint(
-              size: size,
-              painter: _TextEffectPainter(_codeHolder, _setting.fontSize),
-              child: Container(
-                width: size.width,
-                height: size.height,
-                child: widget.child,
-              ),
-            );
-          });
-    });
-  }
-
-  void init() {
-    for (int i = 0; i < _setting.count; i++) {
-      Random random = Random();
-      final scale = 0.5 + random.nextDouble() * 0.5;
-      final length = (_setting.minLength +
-              random.nextDouble() * (_setting.maxLength - _setting.minLength))
-          .floor();
-      final text = randomText(length);
-
-      _codeHolder.add(Code(
-          x: random.nextDouble() * _setting.canvasWidth!,
-          y: random.nextDouble() * _setting.canvasHeight!,
-          color: Colors.yellowAccent.withOpacity(random.nextDouble()),
-          scale: scale,
-          length: length,
-          text: text));
-    }
-
+    canvasSize = Size.zero;
     _animationController.addListener(() {
       for (var value in _codeHolder) {
-        if (value.y > _setting.canvasHeight!) {
+        if (value.y > canvasSize.height) {
           Random random = Random();
           final scale = 0.3 + random.nextDouble() * 0.7;
           final length = (_setting.minLength +
@@ -141,7 +92,7 @@ class _CodeRainEffectState extends State<CodeRainEffect>
               .floor();
 
           final text = randomText(length);
-          value.x = random.nextDouble() * _setting.canvasWidth!;
+          value.x = random.nextDouble() * canvasSize.width;
           value.y = 0 - (_setting.fontSize * length * 1.01);
           value.scale = scale;
           value.length = length;
@@ -160,6 +111,53 @@ class _CodeRainEffectState extends State<CodeRainEffect>
     });
 
     _animationController.repeat();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      _setting.canvasHeight = constraints.maxHeight;
+      _setting.canvasWidth = constraints.maxWidth;
+      canvasSize = Size(_setting.canvasWidth ?? constraints.maxWidth,
+          _setting.canvasHeight ?? constraints.maxHeight);
+      buildCodeHolder();
+      return ValueListenableBuilder(
+          valueListenable: _update,
+          builder: (context, value, child) {
+            return CustomPaint(
+              size: canvasSize,
+              painter: _TextEffectPainter(_codeHolder, _setting.fontSize),
+              child: Container(
+                width: canvasSize.width,
+                height: canvasSize.height,
+                child: widget.child,
+              ),
+            );
+          });
+    });
+  }
+
+  void buildCodeHolder() {
+    if (_codeHolder.isEmpty) {
+      for (int i = 0; i < _setting.count; i++) {
+        Random random = Random();
+        final scale = 0.5 + random.nextDouble() * 0.5;
+        final length = (_setting.minLength +
+                random.nextDouble() * (_setting.maxLength - _setting.minLength))
+            .floor();
+        final text = randomText(length);
+
+        _codeHolder.add(Code(
+            x: random.nextDouble() * _setting.canvasWidth!,
+            y: random.nextDouble() * _setting.canvasHeight!,
+            color: Colors.yellowAccent.withOpacity(random.nextDouble()),
+            scale: scale,
+            length: length,
+            text: text));
+      }
+    }
   }
 
   String randomText(int length) {
