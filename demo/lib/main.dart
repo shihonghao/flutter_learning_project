@@ -60,6 +60,11 @@ class _MyHomePageState extends State<MyHomePage> {
               setting: CodeRainEffectSetting(count: 30, fontSize: 16),
               key: UniqueKey(),
             ),
+          ),
+          Card(
+            child: CloudEffect(
+              key: UniqueKey(),
+            ),
           )
         ],
       ),
